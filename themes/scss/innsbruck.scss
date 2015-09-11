@@ -50,7 +50,8 @@ $toolbar-button-color: saturate(darken($base-color, 10), 10);
             padding: 0 7px;
             margin: 0 0px;
 
-            &.active {
+            &.active, &:active {
+                color: lighten(#007aff, 30);
                 background-image: none;
                 background-color: transparent;
             }
@@ -120,10 +121,6 @@ $toolbar-button-color: saturate(darken($base-color, 10), 10);
                   margin-right: 32px;
                 }
             }
-        }
-
-        .toggle input[type="checkbox"] {
-            background: transparent url(../img/apple/on_off.png) 0 0 no-repeat;
         }
 
         input[type='submit'] {

@@ -60,6 +60,7 @@ class $.jQT
     fullScreenClass: "fullscreen"
     icon: null
     icon4: null
+    minimalUIViewport: true
     preloadImages: false
     starter: $(document).ready
     startupScreen: null
@@ -139,7 +140,7 @@ class $.jQT
 
       fn: (e, params) =>
         animation = getAnimation(params.$el)
-        
+
         # Internal href
         params.$el.addClass "active"
         @goTo $(params.hash).data("referrer", params.$el), animation, params.$el.hasClass("reverse")
@@ -149,7 +150,7 @@ class $.jQT
       isSupported: (e, params) -> true
       fn: (e, params) ->
         animation = getAnimation(params.$el)
-        
+
         # External href
         params.$el.addClass "loading active"
         showPageByHref params.$el.attr("href"),
@@ -191,17 +192,37 @@ class $.jQT
 
       return
 
-    @goBack = =>
+    @goBack = (toPage) =>
       # Error checking
       console.warn "History is empty." if customHistory.length < 1
       if customHistory.length is 1
         console.warn "You are on the first panel."
         window.history.go -1
+
+      # Go back an arbitrary number of internal pages.
+      if typeof toPage == 'number'
+        if toPage > 0
+          customHistory.splice 1, toPage
+        else if toPage < 0
+          customHistory.splice 1, customHistory.length + toPage - 1
+
+      # Go back to a specific page defined by a hash
+      # independent of its place in history.
+      else if /^#.+/.test toPage
+        end = 0
+
+        for h, i in customHistory
+          if h.hash == toPage
+            end = i
+            break
+
+        customHistory.splice 1, end - 1
+
       from = customHistory[0]
       to = customHistory[1]
 
       return unless from? and to?
-      
+
       if doNavigation(from.page, to.page, from.animation, true)
         @
       else
@@ -210,14 +231,16 @@ class $.jQT
 
       return
 
+    @history = customHistory
+
     # PRIVATE METHODS
 
     initHairExtensions = (options) =>
-      
-      # Preload images  
+
+      # Preload images
       for i in @settings.preloadImages
         (new Image()).src = @settings.preloadImages[i]
-      
+
       hairExtensions = []
 
       # Set appropriate icon
@@ -225,18 +248,25 @@ class $.jQT
       precomposed = if @settings.addGlossToIcon then '' else '-precomposed'
       hairExtensions.push """<link rel="apple-touch-icon#{precomposed}" href="#{@settings.icon}">""" if @settings.icon
       hairExtensions.push """<link rel="apple-touch-icon#{precomposed}" sizes="114x114" href="#{@settings.icon4}">"""  if @settings.icon4
-      
+
       # Set startup screen
       hairExtensions.push """<link rel="apple-touch-startup-image" href="#{@settings.startupScreen}">""" if @settings.startupScreen
-      
+
       # Set viewport
-      hairExtensions.push """<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, user-scalable=0">""" if @settings.fixedViewport
-      
+      viewports = []
+      if @settings.fixedViewport
+        viewports.push("initial-scale=1.0", "maximum-scale=1.0", "user-scalable=0")
+
+      if @settings.minimalUIViewport
+        viewports.push("minimal-ui")
+
+      hairExtensions.push """<meta name="viewport" content="#{viewports.join(', ')}">""" if viewports
+
       # Set full-screen
       if @settings.fullScreen
         hairExtensions.push """<meta name="apple-mobile-web-app-capable" content="yes" />"""
         hairExtensions.push """<meta name="apple-mobile-web-app-status-bar-style" content="#{@settings.statusBar}">""" if @settings.statusBar
-      
+
       # Attach hair extensions
       $head.prepend hairExtensions.join '' if hairExtensions.length
 
@@ -253,7 +283,7 @@ class $.jQT
       $(nodes).each (index, node) ->
         $node = $(this)
         $node.attr "id", "page-" + (++newPageCount) unless $node.attr("id")
-        
+
         # Remove any existing instances
         $("#" + $node.attr("id")).remove()
 
@@ -286,10 +316,10 @@ class $.jQT
     # is being used for links, forms, etc.
     clickHandler = (e) =>
       $el = $(e.target)
-      
+
       # Find the nearest tappable ancestor
       $el = $el.closest(touchSelectors.join(", ")) unless $el.is(touchSelectors.join(", "))
-      
+
       # Prevent default if we found an internal link
       # (relative or absolute)
       if $el and $el.attr("href") and not isExternalLink($el)
@@ -297,7 +327,7 @@ class $.jQT
         e.preventDefault()
       else
         console.warn "No need to prevent default click behavior."
-      
+
       # Trigger a tap event if touchstart is not on the job
       unless support.touch
         console.warn "Converting click event to a tap event because touch handlers are not present or off."
@@ -322,10 +352,10 @@ class $.jQT
         @goTo $(location.hash), @settings.defaultAnimation
 
       return
-    
+
     isExternalLink = ($el) ->
       $el.attr("target") is "_blank" or $el.attr("rel") is "external" or $el.is("a[href^=\"http://maps.google.com\"], a[href^=\"mailto:\"], a[href^=\"tel:\"], a[href^=\"javascript:\"], a[href*=\"youtube.com/v\"], a[href*=\"youtube.com/watch\"]")
-    
+
     getAnimation = ($el) =>
       for animation in animations
         if $el.is(animation.selector)
@@ -334,12 +364,12 @@ class $.jQT
       unless resultAnimation
         console.warn "Animation could not be found. Using " + @settings.defaultAnimation + "."
         resultAnimation = @settings.defaultAnimation
-      
+
       resultAnimation
 
     showPageByHref = (href, options) =>
 
-      options = $.extend {}, 
+      options = $.extend {},
         data: null
         method: "GET"
         animation: null
@@ -381,33 +411,33 @@ class $.jQT
           style.textContent = "@media (transform-3d),(-o-transform-3d),(-moz-transform-3d),(-webkit-transform-3d){#jqt-3dtest{height:3px}}"
           div = document.createElement("div")
           div.id = "jqt-3dtest"
-          
+
           # Add to the page
           head.appendChild style
           body.appendChild div
-          
+
           # Check the result
           result = div.offsetHeight is 3
-          
+
           # Clean up
           style.parentNode.removeChild style
           div.parentNode.removeChild div
-          
+
           # Pass back result
           console.warn "Support for 3d transforms: " + result + "."
           result
 
       console.warn "This device does not support touch interaction, or it has been deactivated by the developer. Some features might be unavailable." unless support.touch
       console.warn "This device does not support 3d animation. 2d animations will be used instead."  unless support.transform3d
-      
+
       # Add extensions
       for extFn in @extensions
         $.extend @, extFn(@) if $.isFunction(extFn)
-      
+
       # Create an array of stuff that needs touch event handling
       touchSelectors.push @settings.touchSelector.concat(@settings.backSelector,@settings.submitSelector)
       $touchSelectors = $(touchSelectors.join(', ')).css '-webkit-touch-callout', 'none'
-      
+
       # Make sure we have a jqt element
       $body = $("#jqt")
       anatomyLessons = []
@@ -415,7 +445,7 @@ class $.jQT
       unless $body.length
         console.warn "Could not find an element with the id “jqt”, so the body id has been set to \"jqt\". If you are having any problems, wrapping your panels in a div with the id “jqt” might help."
         $body = $(document.body).attr("id", "jqt")
-      
+
       anatomyLessons.push "supports3d" if support.transform3d
 
       anatomyLessons.push if @settings.useTouchScroll
@@ -424,17 +454,17 @@ class $.jQT
         'autoscroll'
 
       anatomyLessons.push @settings.fullScreenClass, @settings.statusBar if @settings.fullScreenClass and window.navigator.standalone
-      
+
       # Add classes to the body, delegate all our events and trigger an orientation change
       $body.addClass(anatomyLessons.join(" "))
-        .bind("click", clickHandler)
-        .bind("orientationchange", orientationChangeHandler)
-        .bind("submit", submitHandler)
-        .bind("tap", tapHandler)
-        .bind((if support.touch then "touchstart" else "mousedown"), touchStartHandler)
+        .on("click", clickHandler)
+        .on("orientationchange", orientationChangeHandler)
+        .on("submit", submitHandler)
+        .on("tap", tapHandler)
+        .on((if support.touch then "touchstart" else "mousedown"), touchStartHandler)
         .trigger "orientationchange"
 
-      $(window).bind("hashchange", hashChangeHandler) if @updateHash
+      $(window).on("hashchange", hashChangeHandler) if @settings.updateHash
       startHash = location.hash
 
       # Determine what the initial view should be
@@ -447,16 +477,16 @@ class $.jQT
 
       addPageToHistory $currentPage
 
-      @goTo(startHash) if @updateHash and $(startHash).length
+      @goTo(startHash) if @settings.updateHash and $(startHash).length
 
     orientationChangeHandler = ->
       # Scroll to top if we change orientation
       scrollTo 0, 0
-      
+
       orientation = (if Math.abs(window.orientation) is 90 then "landscape" else "portrait")
       $body.removeClass("portrait landscape").addClass(orientation).trigger "turn",
         orientation: orientation
-    
+
     reverseAnimation = (animation) ->
       opposites =
         up: "down"
@@ -470,10 +500,10 @@ class $.jQT
 
     setHash = (hash) =>
       location.hash = "#" + hash.replace(/^#/, "") if @settings.updateHash
-    
+
     submitHandler = (e, callback) =>
       $(":focus").trigger "blur"
-      
+
       $form = (if (typeof (e) is "string") then $(e).eq(0) else ((if e.target then $(e.target) else $(e))))
 
       if $form.length and $form.is(@settings.formSelector) and $form.attr("action")
@@ -487,7 +517,7 @@ class $.jQT
 
     submitParentForm = ($el) ->
       $form = $el.closest("form")
-        
+
       if $form.length
         console.warn "About to submit parent form."
         $form.trigger "submit"
@@ -505,12 +535,12 @@ class $.jQT
 
       # Find the nearest tappable ancestor
       $el = $el.closest(selectors) unless $el.is(selectors)
-      
+
       # Make sure we have a tappable element
       if not $el.length or not $el.attr("href")
         console.warn "Could not find a link related to tapped element."
         return true
-      
+
       # Init some vars
       target = $el.attr("target")
       hash = $el.prop("hash")
@@ -531,25 +561,26 @@ class $.jQT
     touchStartHandler = (e) ->
       $el = $(e.target)
       selectors = touchSelectors.join(", ")
-      
+
       # Find the nearest tappable ancestor
       $el = $el.closest(selectors) unless $el.is(selectors)
-      
+
       # Make sure we have a tappable element
       $el.addClass "active" if $el.length and $el.attr("href")
-      
+
       # Remove our active class if we move
       $el.on (if support.touch then "touchmove" else "mousemove"), ->
         $el.removeClass "active"
       $el.on "touchend", ->
-        $el.unbind "touchmove mousemove"
+        $el.off "touchend mouseup"
+        $el.off "touchmove mousemove"
 
     doNavigation = (fromPage, toPage, animation, goingBack=no) =>
 
       # Private navigationEnd callback
       navigationEndHandler = (event) =>
         if support.animationEvents and animation and @settings.useAnimations
-          fromPage.unbind "webkitAnimationEnd", navigationEndHandler
+          fromPage.off "webkitAnimationEnd", navigationEndHandler
           fromPage.removeClass finalAnimationName + " out"
           toPage.removeClass finalAnimationName  if finalAnimationName
           $body.removeClass "animating animating3d"
@@ -566,7 +597,7 @@ class $.jQT
         , tapBuffer
 
         fromPage.find('.active').removeClass 'active'
-        
+
         # Trigger custom events
         toPage.trigger "pageAnimationEnd",
           direction: "in"
@@ -612,12 +643,12 @@ class $.jQT
 
         # Reverse animation if need be
         finalAnimationName = finalAnimationName.replace(/left|right|up|down|in|out/, reverseAnimation) if goingBack
-        
+
         finalAnimationName ?= @settings.defaultAnimation
         console.warn "finalAnimationName:", finalAnimationName
 
         # Bind internal 'cleanup' callback
-        fromPage.bind "webkitAnimationEnd", navigationEndHandler
+        fromPage.on "webkitAnimationEnd", navigationEndHandler
         $body.addClass "animating#{is3d}"
 
         # Trigger animations

@@ -1,3 +1,6 @@
+@import "compass/css3/flexbox";
+@import "compass/support";
+
 * {
     margin: 0;
     padding: 0;
@@ -41,9 +44,10 @@ body {
         overflow-x: hidden;
         position: absolute;
         z-index: 0;
-        @include display-box;
-        @include box-orient(vertical);
-        @include box-flex(1);
+        display: -webkit-box;
+        display: box;
+        -webkit-box-orient: vertical;
+        box-orient: vertical;
     }
 
     > .current {
@@ -63,7 +67,8 @@ body {
         }
         .scroll {
             position: relative;
-            @include box-flex(1);
+            -webkit-box-flex: 1;
+            box-flex: 1;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
         }
@@ -81,10 +86,10 @@ body {
     }
 
     .in, .out {
-        -webkit-animation-duration: 250ms;
+        -webkit-animation-duration: 375ms;
         -webkit-animation-fill-mode: both;
         -webkit-animation-timing-function: ease-in-out;
-        
+
         // Make sure elements that are animating are not tapable
         &:after {
             @include pseudo-element($width: auto);
@@ -93,10 +98,14 @@ body {
             bottom: 0;
             right: 0;
         }
+
+        input, a {
+            pointer-events: none;
+        }
     }
 
     .in {
-        z-index: 10;        
+        z-index: 10;
     }
     .out {
         z-index: 0 !important;

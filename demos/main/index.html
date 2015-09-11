@@ -140,6 +140,9 @@
                     <a class="back" href="#">Home</a>
                 </div>
                 <div class="scroll">
+                    <div class="info">
+                      Custom animations are also <a target="_blank" href="http://code.google.com/p/jqtouch/wiki/Animations">easy to write</a>. <br>View the source in <code>demos/customanimation</code> to see how.
+                    </div>
                     <h2>Most Popular</h2>
                     <ul class="rounded">
                         <li><a href="#animdemo">Slide</a></li>
@@ -155,15 +158,14 @@
                         <li><a href="#animdemo" class="swap">Swap</a></li>
                     </ul>
                 </div>
-                <div class="info">
-                    Custom animations are also <a target="_blank" href="http://code.google.com/p/jqtouch/wiki/Animations">easy to write</a>. <br>View the source in <code>demos/customanimation</code> to see how.
-                </div>
             </div>
             <div id="animdemo">
-                <div style="font-size: 1.5em; text-align: center; margin: 160px 0 90px; font-family: Marker felt;">
-                    Pretty smooth, eh?            
+                <div class="scroll">
+                    <div style="font-size: 1.5em; text-align: center; margin: 160px 0 90px; font-family: Marker felt;">
+                        Pretty smooth, eh?
+                    </div>
+                    <a style="margin-bottom: 120px;color:rgba(0,0,0,.9)" href="#" class="whiteButton goback">Go back</a>
                 </div>
-                <a style="margin-bottom: 120px;color:rgba(0,0,0,.9)" href="#" class="whiteButton goback">Go back</a>
             </div>
             <div id="buttons">
                 <div class="toolbar">
@@ -209,8 +211,8 @@
                 </div>
                 <div class="scroll">
                     <ul class="rounded">
-                        <li class="forward"><a target="_blank" href="../todo/">To-Do app</a></li>
-                        <li class="forward"><a target="_blank" href="../clock/">Clock app</a></li>
+                        <li class="forward"><a target="_blank" href="../todo/index.html">To-Do app</a></li>
+                        <li class="forward"><a target="_blank" href="../clock/index.html">Clock app</a></li>
                     </ul>
                 </div>
                 <div class="info">
@@ -398,8 +400,10 @@
             <div id="actionsheet" class="actionsheet">
                 <div class="actionchoices">
                     <fieldset>
+                        <div>What would you like to do with this link?</div>
                         <a href="#action_performed" class="whiteButton">Open in Safari</a>
-                        <a href="#action_performed" class="whiteButton">Plan B</a>
+                        <a href="#action_performed" class="whiteButton">Add to Reading List</a>
+                        <a href="#action_performed" class="whiteButton caution">Delete</a>
                     </fieldset>
                     <a href="#" class="redButton dismiss">Cancel</a>
                 </div>
